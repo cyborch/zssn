@@ -1,0 +1,235 @@
+basePath: /api/v1
+definitions:
+  api.AveragesResponse:
+    properties:
+      averages:
+        items:
+          $ref: '#/definitions/user.UserItemAverage'
+        type: array
+    type: object
+  api.FlagRequest:
+    properties:
+      sender_id:
+        type: integer
+    type: object
+  api.PercentageResponse:
+    properties:
+      percentage:
+        type: number
+    type: object
+  api.RegistrationResponse:
+    properties:
+      id:
+        type: integer
+      message:
+        type: string
+    type: object
+  api.Response:
+    properties:
+      message:
+        type: string
+    type: object
+  user.ItemType:
+    enum:
+    - 1
+    type: integer
+    x-enum-varnames:
+    - Ammunition
+  user.Location:
+    properties:
+      lat:
+        description: Latitude
+        type: number
+      lon:
+        description: Longitude
+        type: number
+    type: object
+  user.LostItemValue:
+    properties:
+      lost:
+        type: integer
+    type: object
+  user.TradeRequest:
+    properties:
+      offered_items:
+        description: The items the sender offers to give
+        items:
+          $ref: '#/definitions/user.UserItem'
+        type: array
+      recepient_id:
+        description: The ID of the user who to trade with
+        type: integer
+      requested_items:
+        description: The items the sender wants to receive
+        items:
+          $ref: '#/definitions/user.UserItem'
+        type: array
+      sender_id:
+        description: The ID of the user who sent the trade request
+        type: integer
+    type: object
+  user.User:
+    properties:
+      age:
+        description: Your age
+        type: integer
+      gender:
+        description: Even in a post-apocalyptic world, you can be whatever you want
+        type: string
+      items:
+        description: "Items you have, can be ammunition (1), medication (2),\n\t\tfood
+          (3) or water (4), each can appear multiple times\n\t\tin case you have more
+          than one"
+        items:
+          $ref: '#/definitions/user.UserItem'
+        type: array
+      location:
+        allOf:
+        - $ref: '#/definitions/user.Location'
+        description: Your location in the world
+      name:
+        description: Your name
+        type: string
+    type: object
+  user.UserItem:
+    properties:
+      item:
+        allOf:
+        - $ref: '#/definitions/user.ItemType'
+        description: The item type
+    type: object
+  user.UserItemAverage:
+    properties:
+      average:
+        type: number
+      item:
+        $ref: '#/definitions/user.ItemType'
+    type: object
+info:
+  contact: {}
+paths:
+  /report/averages:
+    get:
+      description: Report the average number resources per user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.AveragesResponse'
+      summary: report averages
+  /report/lost:
+    get:
+      description: Report the total value of lost items because of infected users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.LostItemValue'
+      summary: report lost value of items because of infected users
+  /report/percentage:
+    get:
+      consumes:
+      - application/json
+      description: Report the percentage of (un)infected users
+      parameters:
+      - description: infected
+        in: query
+        name: infected
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.PercentageResponse'
+      summary: report (un)infected percentage
+  /user/{id}/flag:
+    post:
+      description: Flag a user as infected
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: flag request
+        in: body
+        name: flag
+        required: true
+        schema:
+          $ref: '#/definitions/api.FlagRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Response'
+      summary: Flag another user
+  /user/{id}/location:
+    put:
+      consumes:
+      - application/json
+      description: Update the location of a user
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: location
+        in: body
+        name: location
+        required: true
+        schema:
+          $ref: '#/definitions/user.Location'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Response'
+      summary: update location
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a user, where items is an array of integers, each representing
+        an item
+      parameters:
+      - description: user
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.RegistrationResponse'
+      summary: register
+  /user/trade:
+    post:
+      description: Trade items with another user
+      parameters:
+      - description: trade request
+        in: body
+        name: trade
+        required: true
+        schema:
+          $ref: '#/definitions/user.TradeRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Response'
+      summary: Trade with another user
+swagger: "2.0"
